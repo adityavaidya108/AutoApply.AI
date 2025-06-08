@@ -1,0 +1,8 @@
+# Environment
+.env
+/venv/
+/.venv/
+
+# IDE / Editor specific
+.vscode/
+.idea/

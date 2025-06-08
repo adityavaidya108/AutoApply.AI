@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "autoapply-ai"
+version = "0.1.0"
+description = "An AI agent that rewrites your resume, finds matching jobs, and applies for them autonomously."
+authors = ["Aditya Vaidya <adityavaidya83@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "autoapply"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.12"
+uvicorn = "^0.34.3"
+python-dotenv = "^1.1.0"
+langchain = "^0.3.25"
+langchain-openai = "^0.3.21"
+pypdf = "^5.6.0"
+python-multipart = "^0.0.20"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Improver</title>
+    <style>
+        body { font-family: system-ui, sans-serif; line-height: 1.6; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        form { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+        textarea, input { width: 100%; padding: 0.5rem; }
+        button { padding: 0.75rem; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #results { margin-top: 1rem; border-top: 2px solid #eee; padding-top: 1rem; white-space: pre-wrap; background-color: #f9f9f9; padding: 1rem; border-radius: 5px;}
+    </style>
+</head>
+<body>
+    <h1>📄 AI Resume Improver</h1>
+    <p>Upload your resume (PDF) and paste the job description to get an AI-tailored version.</p>
+
+    <form id="resumeForm">
+        <div>
+            <label for="resumeFile"><b>1. Upload Your Resume (PDF only)</b></label>
+            <input type="file" id="resumeFile" name="resumeFile" accept=".pdf" required>
+        </div>
+        <div>
+            <label for="job"><b>2. Paste the Job Description</b></label>
+            <textarea id="job" name="job" rows="10" required></textarea>
+        </div>
+        <button type="submit">✨ Improve My Resume</button>
+    </form>
+
+    <div id="results">
+        <h3>Results will appear here...</h3>
+    </div>
+
+    <script>
+        document.getElementById('resumeForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const resumeFile = document.getElementById('resumeFile').files[0];
+            const jobDescription = document.getElementById('job').value;
+            const resultsDiv = document.getElementById('results');
+
+            if (!resumeFile) {
+                resultsDiv.innerHTML = '<h3>Please select a resume file.</h3>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<h3>🧠 Processing with AI... This may take a moment.</h3>';
+
+            // Use FormData for file uploads
+            const formData = new FormData();
+            formData.append('resume_file', resumeFile);
+            formData.append('job_description', jobDescription);
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/improve-resume', {
+                    method: 'POST',
+                    body: formData, // No 'Content-Type' header needed, browser sets it for FormData
+                });
+
+                if (!response.ok) {
+                    // Get error details from the API response body
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'An unknown error occurred.');
+                }
+                
+                const data = await response.json();
+                resultsDiv.innerHTML = `
+                    <h2>✅ Here is your improved resume:</h2>
+                    <pre>${data.improved_resume}</pre>
+                `;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<h3 style="color: red;">Error</h3><p>${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
