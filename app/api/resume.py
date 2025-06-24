@@ -1,38 +1,43 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-
-# We no longer need ResumeRequest, but we do need ResumeResponse
-from app.schemas import ResumeResponse
-# The function import remains the same
-from modules.resume_improver import get_improved_resume
+import io
+from fastapi import APIRouter, Form, UploadFile, File, HTTPException, Depends
+from pydantic import Field
+from app.schemas import ATSFriendlyResume
+from modules.implementations.langchain_resume_optimizer import LangChainResumeOptimizer
+from modules.implementations.pypdf_processor import PyPDFProcessor
+from modules.interfaces.pdf_processor import IPDFProcessor
+from modules.interfaces.resume_optimizer import IResumeOptimizer
 
 router = APIRouter()
 
-# V-- We modify this endpoint significantly --V
-@router.post("/improve-resume", response_model=ResumeResponse)
-async def improve_resume_endpoint(
-    resume_file: UploadFile = File(..., description="The user's resume in PDF format."),
-    job_description: str = Form(..., description="The job description text.")
+def get_pdf_processor() -> IPDFProcessor:
+    return PyPDFProcessor()
+
+def get_resume_optimizer() -> IResumeOptimizer:
+    return LangChainResumeOptimizer()
+
+@router.post("/optimize-resume", response_model= ATSFriendlyResume)
+async def optimize_resume_endpoint(
+    resume_file: UploadFile = File(...),
+    job_description: str = Form(..., description="The job description text to tailor the resume for."),
+    pdf_processor: IPDFProcessor = Depends(get_pdf_processor),
+    resume_optimizer: IResumeOptimizer = Depends(get_resume_optimizer)
 ):
-    """
-    API endpoint to receive a resume PDF and job description, then return an improved version.
-    """
-    # FastAPI's UploadFile has a .read() method which returns bytes
-    resume_pdf_bytes = await resume_file.read()
-
-    # Check if the uploaded file is actually a PDF
+    """Receives a PDF resume and a job description, then returns an ATS-friendly and tailored resume."""
     if resume_file.content_type != "application/pdf":
-        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a PDF.")
-
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
     try:
-        improved_text = get_improved_resume(
-            resume_pdf_bytes=resume_pdf_bytes,
-            job_description=job_description
-        )
+        pdf_content = await resume_file.read()
+        pdf_stream = io.BytesIO(pdf_content)
 
-        if "Error:" in improved_text:
-            raise HTTPException(status_code=500, detail=improved_text)
+        resume_text = pdf_processor.extract_text(pdf_stream)
+        if not resume_text:
+            raise HTTPException(status_code=500, detail="Could not extract text from PDF.")
 
-        return ResumeResponse(improved_resume=improved_text)
+        optimized_resume = resume_optimizer.optimize_resume(resume_text, job_description)
 
+        return optimized_resume
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+        print(f"An unexpected error occurred: {e}")
+        raise HTTPException(status_code=500, detail=f"An error occurred during resume optimization: {str(e)}")

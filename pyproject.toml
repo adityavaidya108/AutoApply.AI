@@ -16,6 +16,9 @@ langchain = "^0.3.25"
 langchain-openai = "^0.3.21"
 pypdf = "^5.6.0"
 python-multipart = "^0.0.20"
+langchain-community = "^0.3.25"
+pytest = "^8.4.1"
+reportlab = "^4.4.2"
 
 
 [build-system]
