@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ resume.full_name }} - Resume</title>
+    <style>
+        /* Basic CSS for the resume layout */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0.75in; /* Standard resume margins */
+            line-height: 1.5;
+            color: #333;
+        }
+        h1 {
+            font-size: 24pt;
+            text-align: center;
+            margin-bottom: 5pt;
+            color: #2c3e50;
+        }
+        .contact-info {
+            text-align: center;
+            font-size: 10pt;
+            color: #555;
+            margin-bottom: 20pt;
+        }
+        h2 {
+            font-size: 14pt;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5pt;
+            margin-top: 20pt;
+            margin-bottom: 10pt;
+            color: #3498db;
+        }
+        .section-content {
+            margin-left: 10pt;
+            margin-bottom: 15pt;
+        }
+        .experience-item, .education-item {
+            margin-bottom: 10pt;
+        }
+        .job-title, .degree {
+            font-weight: bold;
+            font-size: 12pt;
+        }
+        .company, .institution {
+            font-style: italic;
+            font-size: 11pt;
+            display: inline-block; /* Keep on same line as title */
+            margin-left: 5px;
+        }
+        .dates, .location {
+            font-size: 10pt;
+            color: #666;
+            float: right; /* Attempt to push to right, might need more advanced flexbox/grid for robust layout */
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 20pt;
+            padding-left: 0;
+        }
+        ul li {
+            margin-bottom: 5pt;
+        }
+        .skill-category {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>{{ resume.full_name }}</h1>
+    <p class="contact-info">{{ resume.contact_info }}</p>
+
+    {% if resume.summary %}
+    <h2>Professional Summary</h2>
+    <div class="section-content">
+        <p>{{ resume.summary }}</p>
+    </div>
+    {% endif %}
+
+    {% if resume.experience %}
+    <h2>Work Experience</h2>
+    <div class="section-content">
+        {% for exp in resume.experience %}
+        <div class="experience-item">
+            <p>
+                <span class="job-title">{{ exp.title }}</span>,
+                <span class="company">{{ exp.company }}</span>
+                {% if exp.location %}<span class="location">({{ exp.location }})</span>{% endif %}
+                <span class="dates">{{ exp.start_date }} - {% if exp.end_date %}{{ exp.end_date }}{% else %}Present{% endif %}</span>
+            </p>
+            <ul>
+                {% for responsibility in exp.responsibilities %}
+                <li>{{ responsibility }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if resume.education %}
+    <h2>Education</h2>
+    <div class="section-content">
+        {% for edu in resume.education %}
+        <div class="education-item">
+            <p>
+                <span class="degree">{{ edu.degree }}{% if edu.major %}, {{ edu.major }}{% endif %}</span>,
+                <span class="institution">{{ edu.institution }}</span>
+                {% if edu.location %}<span class="location">({{ edu.location }})</span>{% endif %}
+                {% if edu.graduation_date %}<span class="dates">({{ edu.graduation_date }})</span>{% endif %}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if resume.skills %}
+    <h2>Skills</h2>
+    <div class="section-content">
+        {% for skill_category in resume.skills %}
+        <p><span class="skill-category">{{ skill_category.category }}:</span> {{ skill_category.keywords | join(', ') }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if resume.improvement_suggestions %}
+    <h2>Suggestions for Improvement</h2>
+    <div class="section-content">
+        <ul>
+            {% for suggestion in resume.improvement_suggestions %}
+            <li>{{ suggestion }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+</body>
+</html>

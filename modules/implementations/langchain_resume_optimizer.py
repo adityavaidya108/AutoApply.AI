@@ -6,7 +6,7 @@ from modules.interfaces.resume_optimizer import IResumeOptimizer
 
 class LangChainResumeOptimizer(IResumeOptimizer):
     def __init__(self):
-        self.llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
+        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
         self.parser = PydanticOutputParser(pydantic_object=ATSFriendlyResume)
 
         self.prompt = ChatPromptTemplate.from_messages(
