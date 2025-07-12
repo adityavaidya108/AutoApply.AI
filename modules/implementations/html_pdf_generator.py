@@ -1,5 +1,5 @@
 from io import BytesIO
-from app.schemas import ATSFriendlyResume, Experience, Education, Skill
+from app.schemas import ATSFriendlyResume, Experience, Education, Skill # Import necessary schemas
 from modules.interfaces.document_generator import IDocumentGenerator
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML, CSS # pip install weasyprint
@@ -9,14 +9,18 @@ class HtmlPdfGenerator(IDocumentGenerator):
         self.env = Environment(loader=FileSystemLoader(template_dir))
         self.template = self.env.get_template("resume_template.html") # Create this HTML template
 
-    def generate_pdf(self, resume_data: ATSFriendlyResume) -> BytesIO:
-        # Render the Jinja2 HTML template with the resume data
-        html_content = self.template.render(resume=resume_data.dict()) # Convert Pydantic to dict
+    def generate_pdf(self, resume_data: ATSFriendlyResume) -> BytesIO: 
+        """
+        Generates a PDF byte stream from ATSFriendlyResume data using an HTML template.
+        """
+        # Render the Jinja2 HTML template with the resume data.
+        # The 'resume' variable in the template will be populated by resume_data.dict()
+        html_content = self.template.render(resume=resume_data.dict()) 
 
-        # Convert HTML to PDF using WeasyPrint
+        # Convert the rendered HTML content to PDF using WeasyPrint
         pdf_bytes = BytesIO()
         HTML(string=html_content).write_pdf(pdf_bytes)
-        pdf_bytes.seek(0)
+        pdf_bytes.seek(0) # Reset buffer position to the beginning
         return pdf_bytes
 
     def generate_docx(self, resume_data: ATSFriendlyResume) -> BytesIO:

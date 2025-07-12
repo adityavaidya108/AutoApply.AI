@@ -1,21 +1,35 @@
 import io
 import os
+import re
+import fitz
 from langchain_community.document_loaders import PyPDFLoader
 from modules.interfaces.pdf_processor import IPDFProcessor
 
 class PyPDFProcessor(IPDFProcessor):
     def extract_text(self, pdf_file_stream: io.BytesIO) -> str:
-        """ Concrete implementation using PyPDFLoader to extract text from PDF"""
         try:
-            temp_pdf_path = "temp_resume_for_extraction.pdf"
-            with open(temp_pdf_path, "wb") as f:
-                f.write(pdf_file_stream.read())
+            pdf_file_stream.seek(0)
+            doc = fitz.open(stream=pdf_file_stream.read(), filetype="pdf")
+            text = []
+            urls = []
 
-            loader = PyPDFLoader(temp_pdf_path)
-            pages = loader.load()
-            full_text = "\n".join([page.page_content for page in pages])
-            os.remove(temp_pdf_path) # Clean up
-            return full_text
+            for i in range(doc.page_count):
+                page = doc.load_page(i)  # type: ignore
+                text.append(page.get_text("text"))  # type: ignore[attr-defined]
+
+                # Extract real hyperlinks
+                for link in page.get_links():  # type: ignore[attr-defined]
+                    if link.get("uri"):
+                        urls.append(link["uri"])
+
+            combined_text = "\n".join(text)
+
+            # Optionally append URLs that may not be in visible text
+            if urls:
+                combined_text += "\n\nExtracted URLs:\n" + "\n".join(set(urls))
+
+            return combined_text
+
         except Exception as e:
-            print(f"Error extracting text with PyPDFProcessor: {e}")
-            raise # Re-raise to be handled by the caller (FastAPI endpoint)
+            print(f"Error extracting text and links with PyMuPDFProcessor: {e}")
+            raise

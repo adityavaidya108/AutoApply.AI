@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from app.api import resume
 from dotenv import load_dotenv
 
@@ -10,6 +11,7 @@ app = FastAPI(
     version="0.0.1",
 )
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(resume.router, prefix="/api", tags=["Resume Optimization"])
 
 @app.get("/")

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 class Experience(BaseModel):
     title: str
@@ -8,33 +8,60 @@ class Experience(BaseModel):
     start_date: str
     end_date: Optional[str] = "Present"
     responsibilities: List[str] = Field(description="List of key responsibilities and achievements, using action verbs.")
+    technologies_used: Optional[List[str]] = None
+    achievements: Optional[List[str]] = None
 
 class Education(BaseModel):
     degree: str
     major: Optional[str] = None
     institution: str
     location: Optional[str] = None
-    graduation_date: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    gpa: Optional[str] = None 
+    relevant_coursework: Optional[List[str]] = None 
+    additional_info: Optional[str] = None
 
 class Skill(BaseModel):
     category: str
     keywords: List[str]
 
+class Project(BaseModel):
+    name: str
+    description: str
+    technologies: Optional[List[str]] = None
+    link: Optional[str] = None
+    duration: Optional[str] = None
+    impact: Optional[str] = None
+
+
 class ATSFriendlyResume(BaseModel):
     """
     Schema for an ATS-friendly resume tailored to a job description.
+    This schema represents the *content* of the resume itself.
     """
     full_name: str
-    contact_info: str = Field(description="Email, Phone, LinkedIn URL (if applicable).")
+    contact_info: Dict[str, Optional[str]] = Field(description="Phone number and email as a dictionary.")
+    linkedin_url: Optional[str] = Field(None, description="LinkedIn profile URL.")
+    github_url: Optional[str] = Field(None, description="GitHub profile URL.")
+    portfolio_url: Optional[str] = Field(None, description="Personal portfolio or website URL.")
+    
     summary: str = Field(description="A concise professional summary tailored to the job description, highlighting key qualifications and career goals.")
     experience: List[Experience]
     education: List[Education]
     skills: List[Skill]
-    # Add other sections as needed, e.g., projects, certifications, awards
-    projects: Optional[List[dict]] = None # You can define a detailed Project schema later
+    projects: Optional[List[Project]] = None
     certifications: Optional[List[str]] = None
-    
-    # This field will contain suggestions for further improvement if the LLM identifies gaps
-    improvement_suggestions: Optional[List[str]] = Field(
-        None, description="Suggestions for the user to further improve the resume based on ATS best practices and job description matching."
+    awards: Optional[List[str]] = None
+    volunteer_experience: Optional[List[Experience]] = None
+    languages_spoken: Optional[List[str]] = None
+    interests: Optional[List[str]] = None
+
+
+class ResumeSuggestions(BaseModel):
+    """
+    Schema for improvement suggestions for a resume.
+    """
+    suggestions: List[str] = Field(
+        [], description="Actionable suggestions for the user to further improve their resume based on ATS best practices and job description matching."
     )

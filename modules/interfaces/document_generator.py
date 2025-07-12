@@ -14,5 +14,6 @@ class IDocumentGenerator(ABC):
     def generate_docx(self, resume_data: ATSFriendlyResume) -> BytesIO:
         """
         Abstract method to generate a DOCX byte stream from ATSFriendlyResume data.
+        (Optional, can be NotImplemented if not supported by implementation)
         """
         pass

@@ -1,0 +1,242 @@
+/*
+ * Styles for the generated resume PDF, inspired by LaTeX conciseness and professionalism.
+ * Optimized for WeasyPrint rendering.
+ */
+
+/* Global Body and Text Defaults */
+body {
+    font-family: 'Georgia', 'Times New Roman', serif; /* Classic, professional font */
+    font-size: 10pt; /* Concise default font size for content */
+    color: #000; /* Black text */
+    background-color: #fff; /* White background */
+    margin: 0.79in; /* Approximately 2cm, matching LaTeX example's spacious margins */
+    line-height: 1.25; /* Tighter line spacing for more content per page */
+}
+
+/* Header: Name and Contact Info (Grouped for Centering) */
+.header-block {
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack children vertically */
+    align-items: center; /* Center children horizontally in the cross-axis (for column direction) */
+    margin-bottom: 15pt;
+    padding-bottom: 5pt; /* Small padding at the bottom of the header block */
+}
+
+h1 {
+    font-size: 20pt; /* Prominent name */
+    margin: 0 0 5pt 0; /* No top/left/right margins, custom bottom margin */
+    color: #000;
+    line-height: 1.2;
+}
+
+.contact-info-line {
+    font-size: 9pt; /* Smaller font for contact details */
+    color: #555;
+    margin: 0; /* Remove default paragraph margins */
+    line-height: 1.2;
+    /* text-align: center; is still good here in case its children have specific display types */
+    text-align: center; /* Ensure contents within the line are centered */
+    display: flex; /* Make it a flex container to center its own inline-block children */
+    justify-content: center; /* Center children horizontally */
+    flex-wrap: wrap; /* Allow wrapping if links get too long for one line */
+    gap: 0 8px; /* Gap between elements on the same line */
+}
+
+/* Styles for clickable links in PDF */
+.contact-info-links a {
+    color: #000; /* Black links to blend with text */
+    text-decoration: none; /* No underline by default */
+    border-bottom: 0.5px solid #000; /* Subtle bottom border (like LaTeX) */
+    font-weight: normal; 
+}
+.contact-info-links a:hover {
+    text-decoration: underline; /* Standard hover for browser view */
+}
+
+/* Section Titles (mimicking LaTeX \section) */
+h2 {
+    font-size: 13pt; /* Section heading size */
+    font-weight: bold;
+    color: #000;
+    margin-top: 1.2em; /* Space before section */
+    margin-bottom: 0.4em; /* Space after section heading */
+    padding-bottom: 0; /* No padding if using HR below */
+    text-transform: uppercase; /* Common for professional resume sections */
+    text-align: left; /* Ensure headings are left-aligned */
+}
+
+/* Horizontal Rule for Section Separation */
+hr.section-divider {
+    border: none; /* Remove default browser border */
+    border-top: 1px solid #000; /* Thin black line */
+    margin-top: 0.2cm; /* Space after the section content */
+    margin-bottom: 0.2cm; /* Space before the next section heading */
+    width: 100%; /* Ensure it spans full width */
+    clear: both; /* Important if any floats were used, though we use flexbox */
+}
+
+/* Sub-headings like "Certifications" under "Achievements" */
+h3 {
+    font-size: 11pt;
+    font-weight: bold;
+    margin-top: 0.8em;
+    margin-bottom: 0.2em;
+}
+
+/* Content Sections (general container for content below headings) */
+.section-content {
+    margin-left: 0; /* No default indent */
+    margin-bottom: 0; /* Controlled by item spacing */
+}
+
+/* Experience, Education, Project Item Containers */
+.experience-item, .education-item, .project-item, .volunteer-item { /* Added volunteer-item */
+    margin-bottom: 8pt; /* Reduced space between items */
+}
+
+/* Item Headers (for Title/Company/Dates/Location in Experience, Education, Project) */
+.item-header {
+    display: flex; /* Use Flexbox for robust two-column alignment */
+    justify-content: space-between; /* Pushes content to ends of the line */
+    align-items: baseline; /* Aligns text baselines */
+    margin-bottom: 2pt; /* Tight spacing between header and bullets/description */
+}
+
+.item-title-company {
+    display: inline-flex; /* Keep title and company on one "block" for flex */
+    align-items: baseline;
+    flex-wrap: nowrap; /* Prevent title/company from wrapping if space is tight */
+    flex-grow: 1; /* Allow this part to grow and take most space */
+    margin-right: 10pt; /* Space before dates */
+}
+
+.job-title, .degree, .project-name {
+    font-weight: bold;
+    font-size: 10.5pt; /* Fine-tuned font size */
+    white-space: nowrap; /* Keep on one line if possible */
+}
+
+.company, .institution {
+    font-style: italic;
+    font-size: 10pt;
+    margin-left: 5px; /* Small space after title */
+    white-space: nowrap; /* Keep on one line if possible */
+}
+
+.item-dates-location {
+    font-size: 9.5pt; /* Smaller font for dates/locations */
+    color: #444; /* Muted color for dates */
+    text-align: right;
+    white-space: nowrap; /* Crucial: Prevents dates/location from wrapping */
+    flex-shrink: 0; /* Prevents this section from shrinking */
+}
+
+/* Bulleted Lists (Responsibilities, Highlights, Achievements, Certifications) */
+ul {
+    list-style-type: disc; /* Standard bullet points (•) */
+    padding-left: 15pt; /* Reduced indent for bullets */
+    margin: 0; /* Remove default margin */
+    margin-top: 2pt; /* Small space above first bullet */
+}
+
+ul li {
+    margin-bottom: 2pt; /* Tight spacing between list items */
+    line-height: 1.2; /* Tighter line spacing for bullets */
+    font-size: 10pt;
+}
+
+/* Skills Table (Mimics LaTeX tabularx) */
+.skills-table {
+    width: 100%;
+    border-collapse: collapse; /* No cell borders */
+    font-size: 10pt;
+    margin-top: 5pt;
+}
+.skills-table td {
+    padding: 2pt 0; /* Tight padding */
+    vertical-align: top;
+    line-height: 1.2;
+}
+.skills-table td:first-child {
+    font-weight: bold;
+    width: 80px; /* Fixed width for category labels for alignment */
+    padding-right: 10px; /* Space between category and list */
+}
+
+/* Project Description & Impact */
+.project-description, .project-impact {
+    margin-top: 2pt;
+    margin-bottom: 2pt;
+    font-size: 10pt;
+}
+.technologies-used { /* For technologies list in Experience/Projects */
+    font-size: 9.5pt;
+    margin-top: 2pt;
+    margin-bottom: 2pt;
+    color: #666; /* Muted color for tech stack list */
+}
+
+/* Specific details like GPA, Coursework etc. in Education */
+.education-details {
+    font-size: 9.5pt;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* Additional Info Sections (Languages, Interests) */
+.additional-info-list {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0; /* Remove default padding for non-bulleted lists */
+    list-style: none; /* Remove bullets if just listing items */
+}
+.additional-info-list li {
+    display: inline-block; /* Make items horizontal */
+    margin-right: 8pt;
+    font-size: 10pt;
+}
+
+
+/* Print-Specific Adjustments (WeasyPrint applies these when generating PDF) */
+@page {
+    size: letter; /* or A4, specify your desired paper size */
+    margin: 0.79in; /* Re-affirm margins for consistency */
+}
+@media print {
+    body {
+        font-size: 9.5pt; /* Slightly smaller overall font size for print */
+    }
+    h1 {
+        font-size: 19pt;
+    }
+    h2 {
+        font-size: 12.5pt;
+        page-break-after: avoid; /* Keep heading with its content */
+    }
+    h3 {
+        font-size: 10.5pt;
+        page-break-after: avoid;
+    }
+    /* Attempt to keep these blocks together on a single page if space allows */
+    .header-block, .section-content, .experience-item, .education-item, .project-item, 
+    .skills-table, ul, .volunteer-item {
+        page-break-inside: avoid;
+    }
+    /* Forces no underline for links in the final PDF, if desired */
+    a {
+        text-decoration: none !important;
+    }
+    /* Ensure HRs are treated well for print */
+    hr.section-divider {
+        page-break-after: avoid; /* Don't break right after a divider */
+        margin-top: 0.15cm; /* Tighter spacing for print */
+        margin-bottom: 0.15cm;
+    }
+    /* Further tighten spacing for print where possible */
+    ul li {
+        margin-bottom: 1.5pt;
+    }
+    .item-header {
+        margin-bottom: 1pt;
+    }
+}

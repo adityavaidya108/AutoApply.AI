@@ -2,80 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ resume.full_name }} - Resume</title>
-    <style>
-        /* Basic CSS for the resume layout */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0.75in; /* Standard resume margins */
-            line-height: 1.5;
-            color: #333;
-        }
-        h1 {
-            font-size: 24pt;
-            text-align: center;
-            margin-bottom: 5pt;
-            color: #2c3e50;
-        }
-        .contact-info {
-            text-align: center;
-            font-size: 10pt;
-            color: #555;
-            margin-bottom: 20pt;
-        }
-        h2 {
-            font-size: 14pt;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5pt;
-            margin-top: 20pt;
-            margin-bottom: 10pt;
-            color: #3498db;
-        }
-        .section-content {
-            margin-left: 10pt;
-            margin-bottom: 15pt;
-        }
-        .experience-item, .education-item {
-            margin-bottom: 10pt;
-        }
-        .job-title, .degree {
-            font-weight: bold;
-            font-size: 12pt;
-        }
-        .company, .institution {
-            font-style: italic;
-            font-size: 11pt;
-            display: inline-block; /* Keep on same line as title */
-            margin-left: 5px;
-        }
-        .dates, .location {
-            font-size: 10pt;
-            color: #666;
-            float: right; /* Attempt to push to right, might need more advanced flexbox/grid for robust layout */
-        }
-        ul {
-            list-style-type: disc;
-            margin-left: 20pt;
-            padding-left: 0;
-        }
-        ul li {
-            margin-bottom: 5pt;
-        }
-        .skill-category {
-            font-weight: bold;
-        }
-    </style>
+    
+    <link rel="stylesheet" href="static/styles/resume.css"> 
 </head>
 <body>
 
-    <h1>{{ resume.full_name }}</h1>
-    <p class="contact-info">{{ resume.contact_info }}</p>
+    <div class="header-block">
+        <h1>{{ resume.full_name }}</h1>
+        <p class="contact-info-line">
+            {% if resume.contact_info.phone %}{{ resume.contact_info.phone }}{% endif %}
+            {% if resume.contact_info.phone and resume.contact_info.email %}|{% endif %}
+            {% if resume.contact_info.email %}{{ resume.contact_info.email }}{% endif %}
+            
+            {% if resume.linkedin_url %}
+                | <a href="{{ resume.linkedin_url }}" target="_blank">LinkedIn</a>
+            {% endif %}
+            {% if resume.github_url %}
+                | <a href="{{ resume.github_url }}" target="_blank">GitHub</a>
+            {% endif %}
+            {% if resume.portfolio_url %}
+                | <a href="{{ resume.portfolio_url }}" target="_blank">Portfolio</a>
+            {% endif %}
+        </p>
+    </div>
 
     {% if resume.summary %}
     <h2>Professional Summary</h2>
     <div class="section-content">
         <p>{{ resume.summary }}</p>
     </div>
+    <hr class="section-divider">
     {% endif %}
 
     {% if resume.experience %}
@@ -83,20 +41,62 @@
     <div class="section-content">
         {% for exp in resume.experience %}
         <div class="experience-item">
-            <p>
-                <span class="job-title">{{ exp.title }}</span>,
-                <span class="company">{{ exp.company }}</span>
-                {% if exp.location %}<span class="location">({{ exp.location }})</span>{% endif %}
-                <span class="dates">{{ exp.start_date }} - {% if exp.end_date %}{{ exp.end_date }}{% else %}Present{% endif %}</span>
-            </p>
+            <div class="item-header">
+                <span class="item-title-company">
+                    <span class="job-title">{{ exp.title }}</span>,
+                    <span class="company">{{ exp.company }}</span>
+                </span>
+                <span class="item-dates-location">
+                    {% if exp.location %}{{ exp.location }} | {% endif %}
+                    {{ exp.start_date }} - {% if exp.end_date %}{{ exp.end_date }}{% else %}Present{% endif %}
+                </span>
+            </div>
             <ul>
                 {% for responsibility in exp.responsibilities %}
                 <li>{{ responsibility }}</li>
                 {% endfor %}
             </ul>
+            {% if exp.technologies_used %}
+                <p class="technologies-used">Tech: {{ exp.technologies_used | join(', ') }}</p>
+            {% endif %}
+            {% if exp.achievements %}
+                <ul>
+                    {% for achievement in exp.achievements %}
+                    <li>Achievement: {{ achievement }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
+    <hr class="section-divider">
+    {% endif %}
+
+    {% if resume.projects %}
+    <h2>Projects</h2>
+    <div class="section-content">
+        {% for project in resume.projects %}
+        <div class="project-item">
+            <div class="item-header">
+                <span class="item-title-company">
+                    <span class="project-name">{{ project.name }}</span>
+                </span>
+                <span class="item-dates-location">
+                    {% if project.duration %}{{ project.duration }}{% endif %}
+                    {% if project.link %}{% if project.duration %} | {% endif %}<a href="{{ project.link }}" target="_blank">GitHub</a>{% endif %}
+                </span>
+            </div>
+            <p class="project-description">{{ project.description }}</p>
+            {% if project.technologies %}
+                <p class="technologies-used">Tech: {{ project.technologies | join(', ') }}</p>
+            {% endif %}
+            {% if project.impact %}
+                <p class="project-impact">Impact: {{ project.impact }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <hr class="section-divider">
     {% endif %}
 
     {% if resume.education %}
@@ -104,35 +104,107 @@
     <div class="section-content">
         {% for edu in resume.education %}
         <div class="education-item">
-            <p>
-                <span class="degree">{{ edu.degree }}{% if edu.major %}, {{ edu.major }}{% endif %}</span>,
-                <span class="institution">{{ edu.institution }}</span>
-                {% if edu.location %}<span class="location">({{ edu.location }})</span>{% endif %}
-                {% if edu.graduation_date %}<span class="dates">({{ edu.graduation_date }})</span>{% endif %}
+            <div class="item-header">
+                <span class="item-title-company">
+                    <span class="degree">{{ edu.degree }}{% if edu.major %}, {{ edu.major }}{% endif %}</span>,
+                    <span class="institution">{{ edu.institution }}</span>
+                </span>
+                <span class="item-dates-location">
+                    {% if edu.location %}{{ edu.location }} | {% endif %}
+                    {% if edu.start_date or edu.end_date %}({{ edu.start_date }} - {{ edu.end_date if edu.end_date else 'Present' }}){% endif %}
+                </span>
+            </div>
+            <p class="education-details">
+                {% if edu.gpa %}GPA: {{ edu.gpa }}{% endif %}
+                {% if edu.relevant_coursework %}<br>Relevant Coursework: {{ edu.relevant_coursework | join(', ') }}{% endif %}
+                {% if edu.additional_info %}<br>{{ edu.additional_info }}{% endif %}
             </p>
         </div>
         {% endfor %}
     </div>
+    <hr class="section-divider">
     {% endif %}
 
     {% if resume.skills %}
     <h2>Skills</h2>
     <div class="section-content">
+        <table class="skills-table">
         {% for skill_category in resume.skills %}
-        <p><span class="skill-category">{{ skill_category.category }}:</span> {{ skill_category.keywords | join(', ') }}</p>
+            <tr>
+                <td>{{ skill_category.category }}:</td>
+                <td>{{ skill_category.keywords | join(', ') }}</td>
+            </tr>
         {% endfor %}
+        </table>
     </div>
+    <hr class="section-divider">
     {% endif %}
 
-    {% if resume.improvement_suggestions %}
-    <h2>Suggestions for Improvement</h2>
+    {% if resume.certifications or resume.awards %}
+    <h2>Achievements & Certifications</h2>
     <div class="section-content">
+        {% if resume.certifications %}
+        <h3>Certifications</h3>
         <ul>
-            {% for suggestion in resume.improvement_suggestions %}
-            <li>{{ suggestion }}</li>
+            {% for cert in resume.certifications %}
+            <li>{{ cert }}</li>
             {% endfor %}
         </ul>
+        {% endif %}
+
+        {% if resume.awards %}
+        <h3>Awards</h3>
+        <ul>
+            {% for award in resume.awards %}
+            <li>{{ award }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
     </div>
+    <hr class="section-divider">
+    {% endif %}
+
+    {% if resume.volunteer_experience or resume.languages_spoken or resume.interests %}
+    <h2>Additional Information</h2>
+    <div class="section-content">
+        {% if resume.volunteer_experience %}
+        <h3>Volunteer Experience</h3>
+        {% for vol_exp in resume.volunteer_experience %}
+        <div class="volunteer-item">
+            <div class="item-header">
+                <span class="item-title-company">
+                    <span class="job-title">{{ vol_exp.title }}</span>,
+                    <span class="company">{{ vol_exp.company }}</span>
+                </span>
+                <span class="item-dates-location">
+                    {% if vol_exp.location %}{{ vol_exp.location }} | {% endif %}
+                    {{ vol_exp.start_date }} - {% if vol_exp.end_date %}{{ vol_exp.end_date }}{% else %}Present{% endif %}
+                </span>
+            </div>
+            <ul>
+                {% for resp in vol_exp.responsibilities %}
+                <li>{{ resp }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% if resume.languages_spoken %}
+        <h3>Languages</h3>
+        <ul>
+            {% for lang in resume.languages_spoken %}
+            <li>{{ lang }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if resume.interests %}
+        <h3>Interests</h3>
+        <p>{{ resume.interests | join(', ') }}</p>
+        {% endif %}
+    </div>
+    <hr class="section-divider">
     {% endif %}
 
 </body>
