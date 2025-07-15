@@ -1,5 +1,5 @@
 from io import BytesIO
-from app.schemas import ATSFriendlyResume, Experience, Education, Skill # Import necessary schemas
+from app.schemas import ATSFriendlyResume # Import necessary schemas
 from modules.interfaces.document_generator import IDocumentGenerator
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML, CSS # pip install weasyprint
@@ -14,8 +14,8 @@ class HtmlPdfGenerator(IDocumentGenerator):
         Generates a PDF byte stream from ATSFriendlyResume data using an HTML template.
         """
         # Render the Jinja2 HTML template with the resume data.
-        # The 'resume' variable in the template will be populated by resume_data.dict()
-        html_content = self.template.render(resume=resume_data.dict()) 
+        # The 'resume' variable in the template will be populated by resume_data.model_dump()
+        html_content = self.template.render(resume=resume_data.model_dump())
 
         # Convert the rendered HTML content to PDF using WeasyPrint
         pdf_bytes = BytesIO()

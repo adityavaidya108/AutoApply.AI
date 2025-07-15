@@ -34,7 +34,6 @@ class Project(BaseModel):
     duration: Optional[str] = None
     impact: Optional[str] = None
 
-
 class ATSFriendlyResume(BaseModel):
     """
     Schema for an ATS-friendly resume tailored to a job description.
