@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from app.api import resume
+from app.api import resume, jobs
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -13,6 +14,7 @@ app = FastAPI(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(resume.router, prefix="/api", tags=["Resume Optimization"])
+app.include_router(jobs.router, prefix="/api", tags=["Job Search"])
 
 @app.get("/")
 async def root():

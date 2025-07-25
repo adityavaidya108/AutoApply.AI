@@ -64,3 +64,23 @@ class ResumeSuggestions(BaseModel):
     suggestions: List[str] = Field(
         [], description="Actionable suggestions for the user to further improve their resume based on ATS best practices and job description matching."
     )
+
+class JobListing(BaseModel):
+    """
+    Schema for a single job listing.
+    """
+    title: str
+    company: str
+    location: str
+    job_url: str # Direct URL to the job posting
+    description_snippet: Optional[str] = Field(None, description="A short snippet of the job description text for quick overview.")
+    posted_date: Optional[str] = None # e.g., "24 hours ago", "2 days ago"
+    salary_range: Optional[str] = None
+
+class JobSearchCriteria(BaseModel):
+    """
+    Schema for input criteria for job search.
+    """
+    keywords: str = Field(..., description="Job titles, skills, or keywords (e.g., 'Software Engineer, Python').")
+    location: Optional[str] = Field(None, description="Geographic location (e.g., 'New York, NY', 'Remote').")
+    # Add more criteria as needed, e.g., 'salary_min', 'job_type', 'experience_level'
