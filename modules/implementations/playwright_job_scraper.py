@@ -26,20 +26,36 @@ class PlaywrightJobScraper(IJobScraper):
             await page.wait_for_selector('#password', timeout=15000)
             await page.fill('#password', self.LINKEDIN_PASSWORD)
 
+            # Short delay to allow DOM updates before clicking Sign in
+            await page.wait_for_timeout(500)
+
             # Uncheck the "Keep me signed in" checkbox if it's selected
-            checkbox_selector = '#rememberMeOptIn-checkbox'
-            await page.wait_for_selector(checkbox_selector, timeout=5000)
-            checkbox = await page.query_selector(checkbox_selector)
-            if checkbox:
-                is_checked = await checkbox.is_checked()
-                if is_checked:
-                    await checkbox.click()
-            # Click the "Sign in" button
-            await page.click('button[aria-label="Sign in"]')
+            await page.click('label[for="rememberMeOptIn-checkbox"]')
+
+            sign_in_selector = 'button[aria-label="Sign in"]'
+            await page.wait_for_selector(sign_in_selector, state='visible', timeout=15000)
+
+             # Ensure the button is the topmost clickable element and not disabled
+            await page.wait_for_function(
+                """selector => {
+                    const btn = document.querySelector(selector);
+                    if (!btn) return false;
+                    const rect = btn.getBoundingClientRect();
+                    const elAtPoint = document.elementFromPoint(
+                        rect.left + rect.width / 2,
+                        rect.top + rect.height / 2
+                    );
+                    return elAtPoint === btn && !btn.disabled;
+                }""",
+                sign_in_selector
+            )
+
+            # Click the Sign in button
+            await page.click(sign_in_selector)
 
             # Wait for navigation after login (e.g., to the feed or a redirect)
             # This is tricky; might need to wait for a specific element on the dashboard
-            await page.wait_for_url("https://www.linkedlin.com/feed*", timeout=30000)
+            await page.wait_for_url("https://www.linkedin.com/feed*", timeout=30000)
             print("Login successful!")
 
         except PlaywrightTimeoutError as e:
@@ -149,13 +165,13 @@ class PlaywrightJobScraper(IJobScraper):
 
                 # Wait for initial job cards to load.
                 job_list_selector = "div[data-job-id]"
-                await page.wait_for_selector(job_list_selector, timeout=30000)
+                await page.wait_for_selector(job_list_selector, timeout=300000)
 
                 seen_job_urls = set()
 
                 while len(jobs) < limit:
                     previous_job_count = len(jobs)
-                    # ✅ Use the CORRECT selector to find all visible job cards
+                    # Use the CORRECT selector to find all visible job cards
                     job_cards = await page.locator(job_list_selector).all()
                     print(f"Found {len(job_cards)} job cards on page. Scraping new ones...")
 
@@ -194,7 +210,7 @@ class PlaywrightJobScraper(IJobScraper):
                             continue
 
                     if len(jobs) < limit:
-                        print("\n📜 Scrolling to load more jobs...")
+                        print("\n Scrolling to load more jobs...")
                         scrollable_list_container = page.locator("div.jobs-search__results-list-container")
                         await scrollable_list_container.evaluate("node => node.scrollTop = node.scrollHeight")
 
