@@ -3,6 +3,7 @@ from langchain_openai import ChatOpenAI
 from langchain.output_parsers import PydanticOutputParser
 from app.schemas import ATSFriendlyResume, ResumeSuggestions
 from modules.interfaces.resume_optimizer import IResumeOptimizer
+from typing import Dict
 
 class LangChainResumeOptimizer(IResumeOptimizer):
     def __init__(self):
@@ -108,6 +109,106 @@ class LangChainResumeOptimizer(IResumeOptimizer):
             ]
         ).partial(format_instructions=self.suggestions_parser.get_format_instructions())
 
+        # --- Prompt for parsing resume without job description ---
+        self.parse_resume_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", """
+                 You are a world-class AI Resume Parser. Your task is to extract and structure information from a resume into a standardized JSON format.
+                 
+                 Extract all information accurately from the resume text provided. Do NOT optimize, tailor, or modify the content - just extract it as-is.
+                 
+                 **Section-Specific Rules and STRICT SCHEMA COMPLIANCE:**
+                 
+                 1. **`full_name`**: Extract the candidate's full name. DO NOT use "name".
+                 
+                 2. **`contact_info` (STRICTLY as a Dictionary):**
+                    - This field MUST be a dictionary with "phone" and "email" keys.
+                    - Example: `{{"phone": "(571) 524-9496", "email": "example@gmail.com"}}`
+                    - Extract only phone and email for this field.
+                    - `linkedin_url`, `github_url`, `portfolio_url`: Extract full URLs into these separate fields. If a URL is not found, set its field to `null`.
+                 
+                 3. **`summary`**: Extract the professional summary/objective if present. If not present, return empty string `""`.
+                 
+                 4. **`experience` Section:**
+                    - List in reverse chronological order.
+                    - For each job:
+                      - `title`, `company`, `location`: Extract accurately.
+                      - `start_date`, `end_date`: MUST be separate string fields (e.g., "July 2022", "March 2024").
+                      - `responsibilities`: Extract all bullet points as a list.
+                      - `technologies_used`: Extract technologies mentioned. If none, `[]`.
+                      - `achievements`: Extract specific achievements. If none, `[]`.
+                 
+                 5. **`projects` Section:**
+                    - Extract all projects mentioned.
+                    - For each project: `name`, `description`, `technologies`, `link`, `duration`, `impact`.
+                    - If a field is not present, set to `null`.
+                 
+                 6. **`education` Section:**
+                    - List in reverse chronological order.
+                    - Extract: `degree`, `major`, `institution`, `location`, `start_date`, `end_date`, `gpa`, `relevant_coursework`, `additional_info`.
+                    - If a field is not present, set to `null` or `[]` as appropriate.
+                 
+                 7. **`skills` Section:**
+                    - MUST be a LIST where each item is an object with "category" and "keywords" fields.
+                    - Example: `[{{"category": "Languages", "keywords": ["Python", "Java"]}}]`
+                    - Categorize skills appropriately.
+                 
+                 8. **Other Optional Sections:**
+                    - `certifications`, `awards`, `volunteer_experience`, `languages_spoken`, `interests`
+                    - Extract if present, otherwise return `[]` or `null` as appropriate.
+                 
+                 **Output Format:**
+                 - You MUST return valid JSON in the format specified by the `ATSFriendlyResume` schema.
+                 - Extract information accurately without modification.
+                 """),
+                ("human", "Here is the user's resume:\n\n{resume_text}\n\nExtract and structure all information from this resume into the specified JSON format.")
+            ]
+        ).partial(format_instructions=self.resume_parser.get_format_instructions())
+
+        # --- Prompt for parsing QA sheet ---
+        self.parse_qa_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", """
+                 You are an AI assistant that extracts questions and answers from a QA sheet document.
+                 
+                 Your task is to identify all question-answer pairs in the provided text and return them as a structured JSON object.
+                 
+                 The text may contain:
+                 - Questions followed by answers
+                 - Q&A pairs in various formats (numbered, bulleted, paragraph form, etc.)
+                 - Questions and answers separated by colons, dashes, or line breaks
+                 
+                 Extract each question-answer pair and return as a dictionary where:
+                 - Keys are the questions (normalized/cleaned)
+                 - Values are the corresponding answers
+                 
+                 Common question patterns to look for:
+                 - "Why do you want to work here?" / "Why work here?"
+                 - "Why should we hire you?" / "Why you?"
+                 - "What is your expected salary?" / "Salary expectations?"
+                 - "What are your strengths?" / "Strengths?"
+                 - "What are your weaknesses?" / "Weaknesses?"
+                 - "Where do you see yourself in 5 years?" / "Career goals?"
+                 - And any other questions found in the document
+                 
+                 Return a JSON object with question-answer pairs. If a question doesn't have an answer, set the value to an empty string.
+                 
+                 Example output format:
+                 {{
+                   "whyWorkHere": "I am passionate about...",
+                   "whyYou": "I bring extensive experience...",
+                   "salary": "$100,000 - $120,000",
+                   "strengths": "Strong problem-solving skills...",
+                   "weaknesses": "I sometimes take on too much...",
+                   "careerGoals": "I see myself growing into a leadership role..."
+                 }}
+                 
+                 Use clear, descriptive keys (camelCase) that represent the question topic.
+                 """),
+                ("human", "Here is the QA sheet text:\n\n{qa_text}\n\nExtract all question-answer pairs and return them as a JSON object.")
+            ]
+        )
+
     
     def optimize_resume(self, resume_text: str, job_description: str) -> ATSFriendlyResume:
         """Optimizes a resume for ATS compatibility and tailoring to a job description."""
@@ -133,4 +234,149 @@ class LangChainResumeOptimizer(IResumeOptimizer):
             return suggestions
         except Exception as e:
             print(f"Error getting suggestions with LLM: {e}")
+            raise
+
+    def parse_resume(self, resume_text: str) -> ATSFriendlyResume:
+        """Parse a resume into structured JSON format without requiring a job description."""
+        chain = self.parse_resume_prompt | self.llm | self.resume_parser
+        try:
+            parsed_resume = chain.invoke({
+                "resume_text": resume_text
+            })
+            return parsed_resume
+        except Exception as e:
+            print(f"Error parsing resume with LLM: {e}")
+            raise
+
+    def parse_qa_sheet(self, qa_text: str) -> Dict[str, str]:
+        """Parse a QA sheet into structured question-answer pairs."""
+        import json
+        try:
+            # Use LLM to extract Q&A pairs
+            chain = self.parse_qa_prompt | self.llm
+            response = chain.invoke({"qa_text": qa_text})
+            
+            # Parse the response (should be JSON string)
+            content = response.content.strip()
+            
+            # Remove markdown code blocks if present
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+            
+            # Parse JSON
+            qa_dict = json.loads(content)
+            return qa_dict
+        except json.JSONDecodeError as e:
+            print(f"Error parsing QA sheet JSON response: {e}")
+            print(f"Response content: {response.content if 'response' in locals() else 'N/A'}")
+            # Return empty dict or try to extract manually
+            return {}
+        except Exception as e:
+            print(f"Error parsing QA sheet with LLM: {e}")
+            raise
+
+    def generate_personalized_answers(
+        self, 
+        resume_data: Dict, 
+        cover_letter_text: str, 
+        qa_answers: Dict[str, str], 
+        questions: list, 
+        job_context: str = ""
+    ) -> Dict[str, str]:
+        """Generate personalized answers for job application questions using LLM."""
+        import json
+        
+        # Create prompt for generating personalized answers
+        personalized_answers_prompt = ChatPromptTemplate.from_messages([
+            ("system", """
+            You are an AI assistant that generates personalized, professional answers for job application questions.
+            
+            Your task is to generate concise, authentic answers (2-3 sentences each) that:
+            - Reference specific experiences and achievements from the candidate's resume
+            - Align with the tone and key points from their cover letter
+            - Are tailored to the specific question asked
+            - Sound natural and authentic (not generic or templated)
+            - Demonstrate genuine interest and fit for the role/company
+            
+            For each question, generate a personalized answer that:
+            1. References concrete examples from their experience
+            2. Shows alignment with the job/company (if job context is provided)
+            3. Demonstrates their unique value proposition
+            4. Maintains a professional yet personable tone
+            
+            Return your answers as a JSON object where:
+            - Keys are the exact question text as provided
+            - Values are the generated personalized answers (2-3 sentences each)
+            
+            Example format:
+            {{
+              "Why do you want to work here?": "I am drawn to [Company] because of your innovative approach to [specific area]. My experience in [relevant experience] aligns perfectly with your mission to [company goal]. I'm excited about the opportunity to contribute to [specific project/team].",
+              "Why are you a good fit for this role?": "With [X years] of experience in [relevant field], I've developed expertise in [key skills]. At [previous company], I [specific achievement] which directly relates to the challenges in this role. My background in [relevant experience] positions me to make an immediate impact."
+            }}
+            """),
+            ("human", """
+            Based on the following information, generate personalized answers for these job application questions:
+            
+            Resume Data:
+            {resume_data}
+            
+            Cover Letter:
+            {cover_letter_text}
+            
+            Stored QA Answers (for context only - use as inspiration, not direct answers):
+            {qa_answers}
+            
+            Job Context (if available):
+            {job_context}
+            
+            Questions to Answer:
+            {questions}
+            
+            Generate personalized answers for each question and return as a JSON object.
+            """)
+        ])
+        
+        try:
+            # Format resume data as string if it's a dict
+            resume_str = json.dumps(resume_data, indent=2) if isinstance(resume_data, dict) else str(resume_data)
+            qa_answers_str = json.dumps(qa_answers, indent=2) if isinstance(qa_answers, dict) else str(qa_answers)
+            questions_str = "\n".join([f"{i+1}. {q}" for i, q in enumerate(questions)])
+            
+            # Generate answers using LLM
+            chain = personalized_answers_prompt | self.llm
+            response = chain.invoke({
+                "resume_data": resume_str,
+                "cover_letter_text": cover_letter_text or "No cover letter provided.",
+                "qa_answers": qa_answers_str or "No stored QA answers.",
+                "job_context": job_context or "No job context provided.",
+                "questions": questions_str
+            })
+            
+            # Parse the response
+            content = response.content.strip()
+            
+            # Remove markdown code blocks if present
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+            
+            # Parse JSON
+            answers_dict = json.loads(content)
+            return answers_dict
+        except json.JSONDecodeError as e:
+            print(f"Error parsing personalized answers JSON response: {e}")
+            print(f"Response content: {response.content if 'response' in locals() else 'N/A'}")
+            # Return empty dict on error
+            return {}
+        except Exception as e:
+            print(f"Error generating personalized answers with LLM: {e}")
             raise

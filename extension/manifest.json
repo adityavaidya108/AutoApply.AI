@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "AutoApply.AI - Job Application Autofill",
+  "version": "1.0.0",
+  "description": "Autofill job applications with your resume, cover letter, and Q&A answers",
+  
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*",
+    "http://localhost:8000/*"
+  ],
+  
+  "action": {
+    "default_popup": "popup.html"
+  },
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["fieldMapping.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

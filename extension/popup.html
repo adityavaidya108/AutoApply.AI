@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoApply.AI</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🚀 AutoApply.AI</h1>
+      <p class="subtitle">Job Application Autofill</p>
+    </header>
+    
+    <!-- Message Display Area -->
+    <div class="status" id="status" style="display: none;">
+      <p id="statusMessage"></p>
+    </div>
+
+    <!-- Resume Section -->
+    <div class="document-section" id="resumeSection">
+      <div class="document-header">
+        <span class="document-icon">📄</span>
+        <span class="document-title">Resume</span>
+      </div>
+      <div class="document-status" id="resumeStatus">
+        <span class="status-indicator" id="resumeStatusIndicator">✗</span>
+        <span class="status-text" id="resumeStatusText">Not uploaded</span>
+      </div>
+      <div class="document-date" id="resumeDate" style="display: none;">
+        <span id="resumeDateText"></span>
+      </div>
+      <div class="document-actions">
+        <button id="resumeDownloadBtn" class="btn btn-secondary" style="display: none;">Download</button>
+        <button id="resumeUpdateBtn" class="btn btn-secondary" style="display: none;">Update</button>
+        <button id="resumeUploadBtn" class="btn btn-primary">Upload</button>
+      </div>
+      <div class="loading-indicator" id="resumeLoading" style="display: none;">
+        <span>Processing...</span>
+      </div>
+      <input type="file" id="resumeFileInput" accept=".pdf" style="display: none;">
+    </div>
+
+    <!-- Cover Letter Section -->
+    <div class="document-section" id="coverLetterSection">
+      <div class="document-header">
+        <span class="document-icon">📝</span>
+        <span class="document-title">Cover Letter</span>
+      </div>
+      <div class="document-status" id="coverLetterStatus">
+        <span class="status-indicator" id="coverLetterStatusIndicator">✗</span>
+        <span class="status-text" id="coverLetterStatusText">Not uploaded</span>
+      </div>
+      <div class="document-date" id="coverLetterDate" style="display: none;">
+        <span id="coverLetterDateText"></span>
+      </div>
+      <div class="document-actions">
+        <button id="coverLetterDownloadBtn" class="btn btn-secondary" style="display: none;">Download</button>
+        <button id="coverLetterUpdateBtn" class="btn btn-secondary" style="display: none;">Update</button>
+        <button id="coverLetterUploadBtn" class="btn btn-primary">Upload</button>
+      </div>
+      <div class="loading-indicator" id="coverLetterLoading" style="display: none;">
+        <span>Processing...</span>
+      </div>
+      <input type="file" id="coverLetterFileInput" accept=".pdf,.doc,.docx" style="display: none;">
+    </div>
+
+    <!-- QA Sheet Section -->
+    <div class="document-section" id="qaSection">
+      <div class="document-header">
+        <span class="document-icon">❓</span>
+        <span class="document-title">QA Sheet</span>
+      </div>
+      <div class="document-status" id="qaStatus">
+        <span class="status-indicator" id="qaStatusIndicator">✗</span>
+        <span class="status-text" id="qaStatusText">Not uploaded</span>
+      </div>
+      <div class="document-date" id="qaDate" style="display: none;">
+        <span id="qaDateText"></span>
+      </div>
+      <div class="document-actions">
+        <button id="qaDownloadBtn" class="btn btn-secondary" style="display: none;">Download</button>
+        <button id="qaUpdateBtn" class="btn btn-secondary" style="display: none;">Update</button>
+        <button id="qaUploadBtn" class="btn btn-primary">Upload</button>
+      </div>
+      <div class="loading-indicator" id="qaLoading" style="display: none;">
+        <span>Processing...</span>
+      </div>
+      <input type="file" id="qaFileInput" accept=".pdf,.doc,.docx" style="display: none;">
+    </div>
+
+    <!-- View All Stored Data Button -->
+    <div class="view-data-section">
+      <button id="viewAllDataBtn" class="btn btn-primary btn-full">View All Stored Data</button>
+    </div>
+  </div>
+  
+  <!-- Scripts -->
+  <script src="storage.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
