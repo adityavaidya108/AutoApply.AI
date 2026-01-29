@@ -6,7 +6,7 @@
  * Maps variations of field names to standardized field types
  */
 const FIELD_MAPPINGS = {
-  // Personal Information
+  // Personal Information (firstName/lastName before fullName so "First name" / "Last name" match correctly)
   firstName: [
     'first name', 'firstname', 'given name', 'fname', 'first_name',
     'first-name', 'forename', 'givenname', 'first', 'name (first)'
@@ -14,6 +14,11 @@ const FIELD_MAPPINGS = {
   lastName: [
     'last name', 'lastname', 'surname', 'family name', 'lname',
     'last_name', 'last-name', 'familyname', 'last', 'name (last)'
+  ],
+  fullName: [
+    'full name', 'fullname', 'full_name', 'full-name',
+    'your name', 'applicant name', 'candidate name', 'legal name',
+    'name (full)', 'complete name', 'name'
   ],
   email: [
     'email', 'email address', 'e-mail', 'email_addr', 'email_address',
@@ -61,10 +66,15 @@ const FIELD_MAPPINGS = {
     'linkedin url', 'linkedin_url', 'linkedin-url', 'linkedin link',
     'linkedin profile url', 'linkedin_profile_url'
   ],
+  github: [
+    'github', 'github profile', 'github_profile', 'github-profile',
+    'github url', 'github_url', 'github-url', 'github link', 'github_link',
+    'github profile url', 'github_profile_url', 'github username', 'github_username'
+  ],
   portfolio: [
     'portfolio', 'portfolio url', 'portfolio_url', 'portfolio-url',
     'portfolio link', 'website', 'personal website', 'personal_website',
-    'portfolio website', 'github', 'github profile', 'github_profile'
+    'portfolio website'
   ],
   yearsOfExperience: [
     'years of experience', 'years_of_experience', 'years-of-experience',
@@ -103,6 +113,20 @@ const FIELD_MAPPINGS = {
     'gpa', 'grade point average', 'grade_point_average', 'grade-point-average',
     'cgpa', 'cumulative gpa', 'cumulative_gpa', 'overall gpa', 'overall_gpa'
   ],
+
+  // Demographics / EEO (voluntary, stored in extension preferences)
+  gender: [
+    'gender', 'sex', 'gender identity', 'gender_identity', 'gender-identity'
+  ],
+  race: [
+    'race', 'ethnicity', 'race/ethnicity', 'race_ethnicity', 'race-ethnicity',
+    'ethnic background', 'ethnic_background', 'demographic race'
+  ],
+  veteranStatus: [
+    'veteran status', 'veteran_status', 'veteran-status', 'veteranstatus',
+    'veteran', 'military status', 'military_status', 'protected veteran',
+    'are you a veteran', 'veteran preference'
+  ],
   
   // Questions
   whyWorkHere: [
@@ -134,6 +158,15 @@ const FIELD_MAPPINGS = {
     'us work authorization', 'us_work_authorization', 'can you work legally',
     'work status', 'work_status', 'are you eligible to work', 'eligible to work in',
     'eligible to work in the us', 'eligible to work in the u.s.', 'eligible to work in usa'
+  ],
+  // Work Authorization: sponsorship Yes/No only
+  requiresSponsorship: [
+    'will you require sponsorship', 'require sponsorship', 'requires sponsorship',
+    'require sponsorship to work', 'sponsorship to work in the us', 'sponsorship to work in the u.s.',
+    'do you require sponsorship', 'do you need sponsorship', 'need sponsorship',
+    'will you now or in the future require sponsorship', 'sponsorship required',
+    'visa sponsorship', 'require visa sponsorship', 'need visa sponsorship',
+    'sponsorship', 'work sponsorship'
   ]
 };
 

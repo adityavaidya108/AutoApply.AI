@@ -122,6 +122,65 @@ async function getQA() {
 }
 
 /**
+ * Get demographics / EEO preferences (gender, race, veteran status)
+ * Used to autofill voluntary demographic fields on job forms.
+ * @returns {Promise<{gender?: string, race?: string, veteranStatus?: string}>}
+ */
+async function getDemographics() {
+  try {
+    const result = await chrome.storage.local.get(['demographics']);
+    return result.demographics || {};
+  } catch (error) {
+    console.error('Error getting demographics:', error);
+    return {};
+  }
+}
+
+/**
+ * Save demographics / EEO preferences
+ * @param {Object} demographics - { gender?, race?, veteranStatus? }
+ * @returns {Promise<void>}
+ */
+async function saveDemographics(demographics) {
+  try {
+    await chrome.storage.local.set({ demographics: demographics || {} });
+    console.log('Demographics saved successfully');
+  } catch (error) {
+    console.error('Error saving demographics:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get work authorization preferences (sponsorship Yes/No and basis details)
+ * @returns {Promise<{requiresSponsorship?: string, sponsorshipBasisDetails?: string}>}
+ */
+async function getWorkAuthPreferences() {
+  try {
+    const result = await chrome.storage.local.get(['workAuthPreferences']);
+    return result.workAuthPreferences || {};
+  } catch (error) {
+    console.error('Error getting work auth preferences:', error);
+    return {};
+  }
+}
+
+/**
+ * Save work authorization preferences
+ * @param {Object} prefs - { requiresSponsorship?, sponsorshipBasisDetails? }
+ * @returns {Promise<void>}
+ */
+async function saveWorkAuthPreferences(prefs) {
+  try {
+    await chrome.storage.local.set({ workAuthPreferences: prefs || {} });
+    console.log('Work auth preferences saved successfully');
+  } catch (error) {
+    console.error('Error saving work auth preferences:', error);
+    throw error;
+  }
+}
+
+/**
  * Download resume file
  * @returns {Promise<void>}
  */
@@ -284,6 +343,10 @@ if (typeof window !== 'undefined') {
     getResume,
     getCoverLetter,
     getQA,
+    getDemographics,
+    saveDemographics,
+    getWorkAuthPreferences,
+    saveWorkAuthPreferences,
     downloadResume,
     downloadCoverLetter,
     downloadQASheet

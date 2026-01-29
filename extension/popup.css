@@ -237,6 +237,47 @@ header h1 {
   margin-right: 5px;
 }
 
+/* Demographics / EEO Section */
+.demographics-hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.demographics-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.demographics-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-top: 4px;
+}
+
+.demographics-label:first-of-type {
+  margin-top: 0;
+}
+
+.demographics-select {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2937;
+}
+
+.demographics-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
 /* View Data Section */
 .view-data-section {
   margin-top: 20px;

@@ -337,8 +337,13 @@ function identifyFormFields() {
   const allInputs = document.querySelectorAll('input, textarea, select');
   
   for (const input of allInputs) {
-    // Skip hidden, disabled, or non-visible inputs
-    if (input.type === 'hidden' || input.disabled || !isElementVisible(input)) {
+    // Skip hidden or disabled inputs
+    if (input.type === 'hidden' || input.disabled) {
+      continue;
+    }
+    // Skip non-visible inputs EXCEPT file inputs (many sites hide the native file input and show a custom "Attach" button)
+    const isFileInput = (input.type || '').toLowerCase() === 'file';
+    if (!isFileInput && !isElementVisible(input)) {
       continue;
     }
     
@@ -383,14 +388,18 @@ function identifyFormFields() {
         if (labelText) {
           fieldType = window.fieldMapping?.findFieldType(labelText);
           if (fieldType) {
-            // If we already have this field type, prefer the one with a proper label
+            // If we already have this field type, prefer file input for resume/coverLetter (sites often have both)
             if (fields[fieldType]) {
-              const existingLabel = findAssociatedLabel(fields[fieldType]);
+              const existing = fields[fieldType];
+              const existingIsFile = (existing.type || '').toLowerCase() === 'file';
+              const currentIsFile = (input.type || '').toLowerCase() === 'file';
+              const existingLabel = findAssociatedLabel(existing);
               const existingLabelText = existingLabel ? (existingLabel.textContent || '').trim() : '';
               const currentLabelText = labelText.trim();
-              
-              // Prefer the one with a non-empty label, or the one that's not a Select2 input
-              if (currentLabelText && (!existingLabelText || fields[fieldType].classList.contains('select2-offscreen') || fields[fieldType].classList.contains('select2-focusser'))) {
+
+              const preferCurrent = currentIsFile && !existingIsFile ||
+                (currentLabelText && (!existingLabelText || existing.classList.contains('select2-offscreen') || existing.classList.contains('select2-focusser')));
+              if (preferCurrent) {
                 fields[fieldType] = input;
               }
             } else {
@@ -402,6 +411,25 @@ function identifyFormFields() {
       }
     }
     
+    // For radio/checkbox: if label only gave option text ("Yes"/"No"), try question text from preceding sibling (e.g. div.application-label)
+    if (!fieldType && (inputType === 'radio' || inputType === 'checkbox')) {
+      const questionText = findQuestionTextForRadioOrCheckbox(input);
+      if (questionText) {
+        const cleaned = questionText
+          .replace(/\*+/g, '')
+          .replace(/\(required\)/gi, '')
+          .replace(/is required/gi, '')
+          .trim();
+        if (cleaned) {
+          fieldType = window.fieldMapping?.findFieldType(cleaned);
+          if (fieldType) {
+            fields[fieldType] = input;
+            continue;
+          }
+        }
+      }
+    }
+
     // Method 2: Placeholder matching (PRIMARY)
     if (input.placeholder) {
       fieldType = window.fieldMapping?.findFieldType(input.placeholder);
@@ -529,6 +557,35 @@ function findNearbyText(input) {
     return nearbyText;
   }
   
+  return null;
+}
+
+/**
+ * For radio/checkbox groups where the question is in a sibling block (e.g. div.application-label
+ * before div.application-field), find that question text so we can match field type.
+ * @param {HTMLElement} input - Radio or checkbox input
+ * @returns {string|null} - Question text or null
+ */
+function findQuestionTextForRadioOrCheckbox(input) {
+  const type = (input.type || '').toLowerCase();
+  if (type !== 'radio' && type !== 'checkbox') return null;
+
+  let node = input.parentElement;
+  let depth = 0;
+  const maxDepth = 10;
+
+  while (node && node !== document.body && depth < maxDepth) {
+    const prev = node.previousElementSibling;
+    if (prev) {
+      const text = (prev.textContent || prev.innerText || '').trim();
+      // Question text is usually longer than option text ("Yes"/"No") and may contain "?"
+      if (text.length > 25) {
+        return text;
+      }
+    }
+    node = node.parentElement;
+    depth++;
+  }
   return null;
 }
 
@@ -985,8 +1042,9 @@ function mapResumeDataToFields(resumeData) {
   const data = resumeData.data;
   const mapped = {};
 
-  // Split full name into first/last
+  // Full name (for single "Full name" fields) and split into first/last
   if (data.full_name) {
+    mapped.fullName = data.full_name.trim();
     const nameParts = data.full_name.trim().split(/\s+/);
     if (nameParts.length >= 2) {
       mapped.firstName = nameParts[0];
@@ -1026,6 +1084,9 @@ function mapResumeDataToFields(resumeData) {
     }
     if (data.portfolio_url) {
       mapped.portfolio = data.portfolio_url;
+    }
+    if (data.github_url) {
+      mapped.github = data.github_url;
     }
   }
 
@@ -2199,8 +2260,11 @@ async function handleFillFormClick() {
       return;
     }
 
-    // Map data to fields
-    const userData = combineMappedData(resumeData, coverLetterData, qaData);
+    // Map data to fields and merge preferences (demographics + work auth sponsorship)
+    const baseData = combineMappedData(resumeData, coverLetterData, qaData);
+    const demographics = await getDemographicsFromStorage();
+    const workAuthPrefs = await getWorkAuthPreferencesFromStorage();
+    const userData = { ...baseData, ...demographics, ...workAuthPrefs };
     console.log('AutoApply.AI: Combined user data:', userData);
     console.log('AutoApply.AI: Detection state fields:', Object.keys(detectionState.fields));
 
@@ -2299,6 +2363,30 @@ function getStoredData(type) {
   return new Promise((resolve) => {
     chrome.storage.local.get([type], (result) => {
       resolve(result[type] || null);
+    });
+  });
+}
+
+/**
+ * Get demographics / EEO preferences from storage (used for autofill; content script does not load storage.js)
+ * @returns {Promise<{gender?: string, race?: string, veteranStatus?: string}>}
+ */
+function getDemographicsFromStorage() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['demographics'], (result) => {
+      resolve(result.demographics || {});
+    });
+  });
+}
+
+/**
+ * Get work authorization preferences from storage (sponsorship Yes/No and basis details)
+ * @returns {Promise<{requiresSponsorship?: string, sponsorshipBasisDetails?: string}>}
+ */
+function getWorkAuthPreferencesFromStorage() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['workAuthPreferences'], (result) => {
+      resolve(result.workAuthPreferences || {});
     });
   });
 }

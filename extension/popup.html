@@ -90,6 +90,61 @@
       <input type="file" id="qaFileInput" accept=".pdf,.doc,.docx" style="display: none;">
     </div>
 
+    <!-- Demographics / EEO (for autofilling voluntary form fields) -->
+    <div class="document-section" id="demographicsSection">
+      <div class="document-header">
+        <span class="document-icon">👤</span>
+        <span class="document-title">Demographics (EEO)</span>
+      </div>
+      <p class="demographics-hint">Optional. Used to autofill gender, race, and veteran status on job forms.</p>
+      <div class="demographics-fields">
+        <label class="demographics-label">Gender</label>
+        <select id="demographicsGender" class="demographics-select">
+          <option value="">— Not set —</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Non-binary">Non-binary</option>
+          <option value="Prefer not to say">Prefer not to say</option>
+        </select>
+        <label class="demographics-label">Race</label>
+        <select id="demographicsRace" class="demographics-select">
+          <option value="">— Not set —</option>
+          <option value="Asian (Not Hispanic or Latino)">Asian (Not Hispanic or Latino)</option>
+          <option value="White (Not Hispanic or Latino)">White (Not Hispanic or Latino)</option>
+          <option value="Black or African American (Not Hispanic or Latino)">Black or African American (Not Hispanic or Latino)</option>
+          <option value="Hispanic or Latino">Hispanic or Latino</option>
+          <option value="American Indian or Alaska Native">American Indian or Alaska Native</option>
+          <option value="Native Hawaiian or Other Pacific Islander">Native Hawaiian or Other Pacific Islander</option>
+          <option value="Two or More Races (Not Hispanic or Latino)">Two or More Races (Not Hispanic or Latino)</option>
+          <option value="Prefer not to say">Prefer not to say</option>
+        </select>
+        <label class="demographics-label">Veteran status</label>
+        <select id="demographicsVeteran" class="demographics-select">
+          <option value="">— Not set —</option>
+          <option value="I am not a veteran">I am not a veteran</option>
+          <option value="I identify as one or more of the classifications of protected veteran">I identify as one or more of the classifications of protected veteran</option>
+          <option value="Prefer not to say">Prefer not to say</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Work Authorization (sponsorship questions) -->
+    <div class="document-section" id="workAuthSection">
+      <div class="document-header">
+        <span class="document-icon">📋</span>
+        <span class="document-title">Work Authorization</span>
+      </div>
+      <p class="demographics-hint">Used to autofill the sponsorship Yes/No question on job forms.</p>
+      <div class="demographics-fields">
+        <label class="demographics-label">Will you now or in the future require sponsorship to work in the US?</label>
+        <select id="workAuthRequiresSponsorship" class="demographics-select">
+          <option value="">— Not set —</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+    </div>
+
     <!-- View All Stored Data Button -->
     <div class="view-data-section">
       <button id="viewAllDataBtn" class="btn btn-primary btn-full">View All Stored Data</button>

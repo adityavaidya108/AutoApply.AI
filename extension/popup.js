@@ -28,6 +28,20 @@ async function initializePopup() {
     await updateDocumentUI('resume', status.resume);
     await updateDocumentUI('coverLetter', status.coverLetter);
     await updateDocumentUI('qa', status.qa);
+
+    // Load demographics (EEO) preferences
+    const demographics = await window.storage.getDemographics();
+    const genderSelect = document.getElementById('demographicsGender');
+    const raceSelect = document.getElementById('demographicsRace');
+    const veteranSelect = document.getElementById('demographicsVeteran');
+    if (genderSelect && demographics.gender) genderSelect.value = demographics.gender;
+    if (raceSelect && demographics.race) raceSelect.value = demographics.race;
+    if (veteranSelect && demographics.veteranStatus) veteranSelect.value = demographics.veteranStatus;
+
+    // Load work authorization preferences
+    const workAuth = await window.storage.getWorkAuthPreferences();
+    const sponsorshipSelect = document.getElementById('workAuthRequiresSponsorship');
+    if (sponsorshipSelect && workAuth.requiresSponsorship) sponsorshipSelect.value = workAuth.requiresSponsorship;
     
     console.log('Popup initialized with storage status:', status);
   } catch (error) {
@@ -135,6 +149,30 @@ function setupEventListeners() {
   
   // View All Stored Data button
   document.getElementById('viewAllDataBtn').addEventListener('click', handleViewAllData);
+
+  // Demographics (EEO) - save on change
+  function saveDemographicsFromForm() {
+    const gender = document.getElementById('demographicsGender').value;
+    const race = document.getElementById('demographicsRace').value;
+    const veteran = document.getElementById('demographicsVeteran').value;
+    const demographics = {};
+    if (gender) demographics.gender = gender;
+    if (race) demographics.race = race;
+    if (veteran) demographics.veteranStatus = veteran;
+    window.storage.saveDemographics(demographics);
+  }
+  document.getElementById('demographicsGender').addEventListener('change', saveDemographicsFromForm);
+  document.getElementById('demographicsRace').addEventListener('change', saveDemographicsFromForm);
+  document.getElementById('demographicsVeteran').addEventListener('change', saveDemographicsFromForm);
+
+  // Work Authorization - save on change
+  function saveWorkAuthFromForm() {
+    const requiresSponsorship = document.getElementById('workAuthRequiresSponsorship').value;
+    const prefs = {};
+    if (requiresSponsorship) prefs.requiresSponsorship = requiresSponsorship;
+    window.storage.saveWorkAuthPreferences(prefs);
+  }
+  document.getElementById('workAuthRequiresSponsorship').addEventListener('change', saveWorkAuthFromForm);
 }
 
 /**
