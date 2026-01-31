@@ -341,23 +341,22 @@ function identifyFormFields() {
     if (input.type === 'hidden' || input.disabled) {
       continue;
     }
-    // Skip non-visible inputs EXCEPT file inputs (many sites hide the native file input and show a custom "Attach" button)
-    const isFileInput = (input.type || '').toLowerCase() === 'file';
-    if (!isFileInput && !isElementVisible(input)) {
+    const inputType = input.type ? input.type.toLowerCase() : '';
+    // Skip non-visible inputs EXCEPT: file (sites hide native file input), and checkbox/radio (sites often hide native control and show custom div/span, e.g. Tailwind/Bootstrap)
+    const isFileInput = inputType === 'file';
+    const isCustomStyledCheckboxOrRadio = (inputType === 'checkbox' || inputType === 'radio');
+    if (!isFileInput && !isCustomStyledCheckboxOrRadio && !isElementVisible(input)) {
       continue;
     }
     
-    // Skip Select2 widget hidden inputs (they have select2-offscreen or select2-focusser classes)
-    if (input.classList.contains('select2-offscreen') || 
+    // Skip only Select2 *injected* inputs (focusser, search box). Do NOT skip the actual <select class="select2-offscreen"> — that is where the selected value is stored.
+    if (input.tagName === 'INPUT' && (
         input.classList.contains('select2-focusser') ||
-        input.classList.contains('select2-input') ||
-        input.hasAttribute('aria-haspopup')) {
-      // Skip Select2 hidden inputs - they're not the actual form fields
+        input.classList.contains('select2-input'))) {
       continue;
     }
     
     // Skip buttons
-    const inputType = input.type ? input.type.toLowerCase() : '';
     if (inputType === 'button' || inputType === 'submit' || inputType === 'reset') {
       continue;
     }
