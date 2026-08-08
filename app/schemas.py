@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from pydantic import BaseModel, Field, field_validator, model_validator
+from typing import List, Optional, Dict, Any
 
 class Experience(BaseModel):
     title: str
@@ -20,7 +20,18 @@ class Education(BaseModel):
     end_date: Optional[str] = None
     gpa: Optional[str] = None 
     relevant_coursework: Optional[List[str]] = None 
-    additional_info: Optional[str] = None
+    additional_info: Optional[List[str]] = Field(
+        default=None, 
+        description="List of honors, awards, or additional achievements related to this degree."
+    )
+
+    @field_validator("additional_info", mode="before")
+    @classmethod
+    def coerce_additional_info(cls, v: Any) -> Any:
+        """Accept a single string from the LLM and wrap it as a one-item list."""
+        if isinstance(v, str):
+            return [v] if v.strip() else None
+        return v
 
 class Skill(BaseModel):
     category: str
@@ -33,6 +44,23 @@ class Project(BaseModel):
     link: Optional[str] = None
     duration: Optional[str] = None
     impact: Optional[str] = None
+
+class Award(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_from_str(cls, data: Any) -> Any:
+        """Accept a plain string award and map it to {name: ...}."""
+        if isinstance(data, str):
+            return {"name": data}
+        return data
+
+    def __str__(self) -> str:
+        if self.description:
+            return f"{self.name}: {self.description}"
+        return self.name
 
 class ATSFriendlyResume(BaseModel):
     """
@@ -51,7 +79,13 @@ class ATSFriendlyResume(BaseModel):
     skills: List[Skill]
     projects: Optional[List[Project]] = None
     certifications: Optional[List[str]] = None
-    awards: Optional[List[str]] = None
+    awards: Optional[List[Award]] = Field(
+        default=None, 
+        description=(
+            "List of awards as objects with 'name' (required) and optional 'description'. "
+            "Example: [{\"name\": \"Spotlight Award\", \"description\": \"For impactful engineering\"}]"
+        )
+    )
     volunteer_experience: Optional[List[Experience]] = None
     languages_spoken: Optional[List[str]] = None
     interests: Optional[List[str]] = None

@@ -71,7 +71,7 @@ class LangChainResumeOptimizer(IResumeOptimizer):
                      - Extract `degree`, `major`, `institution`, `location`, `start_date`, `end_date`.
                      - `gpa`: Include if high. If none, `null`.
                      - `relevant_coursework`: List relevant courses as `List[str]`. If none, `[]`.
-                     - `additional_info`: Any honors, awards (e.g., "Dean's List"), thesis, or significant academic achievements as a **single string**. If none, `null` or `""`. **DO NOT return an empty list `[]` for this field.**
+                     - `additional_info`: List of honors, awards (e.g., "Dean's List"), thesis, or significant academic achievements as `List[str]`. If none, `[]` or `null`.
 
                  7.  **`skills` Section (STRICTLY as a LIST of Skill Objects):**
                      - **Crucial:** This MUST be a LIST where each item is an object with "category" and "keywords" fields.
@@ -80,7 +80,9 @@ class LangChainResumeOptimizer(IResumeOptimizer):
                      - Use keywords from the job description where relevant. Avoid generic/outdated tech.
 
                  8.  **Other Optional Sections (STRICTLY as per schema):**
-                     - `certifications`, `awards`, `volunteer_experience` (as `List[Experience]`), `languages_spoken`, `interests`: For lists, return `[]` if empty. For single strings like `additional_info` in `Education`, return `null` or `""` if empty.
+                     - `certifications`, `languages_spoken`, `interests`: `List[str]`. Return `[]` if empty.
+                     - `awards`: MUST be a list of objects with `name` (required) and optional `description`. Example: `[{{"name": "Spotlight Award", "description": "For impactful engineering"}}]`. Return `[]` if empty.
+                     - `volunteer_experience`: `List[Experience]`. Return `[]` if empty.
 
                  **Output Format:**
                  - You MUST return valid JSON in the format specified by the `ATSFriendlyResume` schema.
@@ -154,8 +156,9 @@ class LangChainResumeOptimizer(IResumeOptimizer):
                     - Categorize skills appropriately.
                  
                  8. **Other Optional Sections:**
-                    - `certifications`, `awards`, `volunteer_experience`, `languages_spoken`, `interests`
-                    - Extract if present, otherwise return `[]` or `null` as appropriate.
+                    - `certifications`, `languages_spoken`, `interests`: `List[str]`. Extract if present, otherwise `[]`.
+                    - `awards`: MUST be a list of objects with `name` (required) and optional `description`. Example: `[{{"name": "Spotlight Award", "description": "For impactful engineering"}}]`. If only a title is available, use `{{"name": "Award Title"}}`. Return `[]` if none.
+                    - `volunteer_experience`: `List[Experience]`. Return `[]` if none.
                  
                  **Output Format:**
                  - You MUST return valid JSON in the format specified by the `ATSFriendlyResume` schema.

@@ -116,7 +116,7 @@
             {% if edu.relevant_coursework or edu.additional_info %}
                 <p class="education-details-misc">
                     {% if edu.relevant_coursework %}Relevant Coursework: {{ edu.relevant_coursework | join(', ') }}.<br>{% endif %}
-                    {% if edu.additional_info %}{{ edu.additional_info }}{% endif %}
+                    {% if edu.additional_info %}{{ edu.additional_info | join('; ') }}{% endif %}
                 </p>
             {% endif %}
         </div>
@@ -156,7 +156,7 @@
         <h3>Awards</h3>
         <ul>
             {% for award in resume.awards %}
-            <li>{{ award }}</li>
+            <li>{{ award.name }}{% if award.description %}: {{ award.description }}{% endif %}</li>
             {% endfor %}
         </ul>
         {% endif %}
